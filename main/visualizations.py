@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-def rank_mapper(df:pd.core.dataframe.DataFrame,savepath:str,title:str="Rank of Home Cities of Hutchins Workers, 2002-2019",cityname_column:str="work_city"):
+def rank_mapper(df:pd.core.frame.DataFrame,savepath:str,title:str="Rank of Home Cities of Hutchins Workers, 2002-2019",cityname_column:str="work_city"):
     """
     This function creates a chart of a citie's destinations formatted as a rank-change chart.
     :param DataFrame df: df formatted correctly.
