@@ -53,8 +53,8 @@ def build_db(spath : str = None):
         conn.commit()
         conn.close()
         print(f"success!\nsaved to: {spath}")
-    except:
-        print(f"could not create sqlite db at: {spath}")
+    except Exception as e:
+        print(f"could not create sqlite db at: {spath}. {e}")
 
 def read_in_data(file_path : str = None) -> pd.core.frame.DataFrame:
     """

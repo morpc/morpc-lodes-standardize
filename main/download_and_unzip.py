@@ -97,7 +97,9 @@ def load_existing_state_dict(
 
 def download_state_lodes_file(save_loc: str, 
                               st: str,
-                              links_dict: dict) -> str:
+                              links_dict: dict,
+                              skip_existing: bool = True) -> str:
+                                  
     '''
     download a single state's full lodes file to a specific folder.
     returns a string with a path to a folder.
@@ -125,6 +127,7 @@ def download_state_lodes_file(save_loc: str,
     
     #loop through and download all files
     start = time.strftime("%H:%M:%S")
+    skipcounter = 0
     print(f"start time: {start}")
     for s in ['od','rac','wac','cw']:
         print(f"{st} + {s}...")
@@ -138,9 +141,15 @@ def download_state_lodes_file(save_loc: str,
                 #print update every 25 files
                 if (i % 50 == 0) or (i+1 == counter):
                     print(f"{((i+1)/counter):.1%} complete...")
+                    if(skipcounter > 0):
+                        print("Skipped {} files that already existed".format(skipcounter))
                 
                 #make the output path
                 save_location = os.path.join(f"{fold}\\{s}",zurl.split("/")[-1])
+                if(os.path.exists(save_location)):
+                    if(skip_existing == True):
+                        skipcounter = skipcounter + 1
+                        continue
                 # Make an HTTP GET request to download the .zip file
                 response = requests.get(zurl)
                 if response.status_code == 200:
@@ -153,10 +162,12 @@ def download_state_lodes_file(save_loc: str,
             continue
     print("done downloading!")
     end = time.strftime("%H:%M:%S")
+    if(skipcounter > 0):
+        print("Skipped {} files that already existed".format(skipcounter))
     print(f"end time: {end}")
     return fold
 
-def unzip_state_lodes_file(state_fold : str = None) -> str:
+def unzip_state_lodes_file(state_fold : str = None, skip_existing : bool = True, delete_corrupt : bool = True) -> str:
     '''
     unzip a state's lodes data, using the parent folder location with the data
 
@@ -181,10 +192,14 @@ def unzip_state_lodes_file(state_fold : str = None) -> str:
             print(f"unzipping {counter} {ty} files")
 
             # Iterate through the files in the subfolder
+            skipcounter = 0
             for i, filename in enumerate(file_list):
                 
                 if (i % 50 == 0) or (i+1 == counter):
                     print(f"{((i+1)/counter):.1%} complete...")
+                    if(skipcounter > 0):
+                        print("Skipped {} files that already existed".format(skipcounter))
+                        
 
                 # Check if the file has a .gz extension
                 if filename.endswith('.gz'):
@@ -197,6 +212,10 @@ def unzip_state_lodes_file(state_fold : str = None) -> str:
                     # Construct the full path to the output file
                     output_file_path = os.path.join(sub_path, output_filename)
 
+                    if(skip_existing == True):
+                        if(os.path.exists(output_file_path)):
+                            skipcounter = skipcounter + 1
+                            continue
                     try:
                         # Open the .gz file for reading and the output file for writing
                         with gzip.open(gz_file_path, 'rb') as gz_file, open(output_file_path, 'wb') as out_file:
@@ -204,9 +223,14 @@ def unzip_state_lodes_file(state_fold : str = None) -> str:
                             out_file.write(gz_file.read())
                     except Exception as e:
                         print(f"error unzipping {filename}: {str(e)}")
+                        if(delete_corrupt == True):
+                            print("Deleting corrupt gzip file {}".format(gz_file_path))
+                            #os.unlink(gz_file_path)
         except:
             continue
     end = time.strftime("%H:%M:%S")
-    print(f"start time: {end}")
+    print(f"end time: {end}")
+    if(skipcounter > 0):
+        print("Skipped {} files that already existed".format(skipcounter))
 
 
